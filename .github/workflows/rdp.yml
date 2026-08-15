@@ -4,13 +4,15 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Install Ngrok
-        run: choco install ngrok
-      - name: Authenticate
-        run: ngrok config add-authtoken ${{ secrets.NGROK_AUTHTOKEN }}
-      - name: Setup RDP
+      - name: Download & Extract Ngrok
+        run: |
+          Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
+          Expand-Archive -Path "ngrok.zip" -DestinationPath "."
+      - name: Authenticate Ngrok
+        run: .\ngrok.exe config add-authtoken ${{ secrets.NGROK_AUTHTOKEN }}
+      - name: Enable RDP
         run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
       - name: Start Tunnel
-        run: ngrok tcp 3389
+        run: .\ngrok.exe tcp 3389
